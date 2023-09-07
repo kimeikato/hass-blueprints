@@ -10,7 +10,7 @@ blueprint:
         entity:
           device_class: window
     climate:
-      name: Heizung
+      name: Climate
       selector:
         entity:
           domain: climate
