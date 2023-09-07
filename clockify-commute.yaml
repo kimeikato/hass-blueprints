@@ -1,0 +1,178 @@
+---
+blueprint:
+  name: Clockyify - Commute
+  description: Track commute time for clockify
+  domain: automation
+  input:
+    person:
+      name: Person
+      selector:
+        entity:
+          domain: person
+    home:
+      name: Home zone
+      selector:
+        entity:
+          domain: zone
+    work:
+      name: Work zone
+      selector:
+        entity:
+          domain: zone
+    work_accomodation:
+      name: Work Accomodation
+      description: Could be Accomodation or Train/Bus station
+      selector:
+          entity:
+            domain: zone
+    commute_start_datetime:
+      name: Start DateTime
+      selector:
+        entity:
+          domain: input_datetime
+    commute_end_datetime:
+      name: End DateTime
+      selector:
+        entity:
+          domain: input_datetime
+    commute_origin:
+      name: Commute Origin Helper
+      selector:
+        entity:
+          domain: input_text
+    actions:
+      name: Actions
+      description: Notifications or similar to be run. {{sensors}} is replaced with
+        the names of sensors being low on battery.
+      selector:
+        action: {}
+
+mode: single
+
+trigger:
+- platform: zone
+  entity_id: !input person
+  zone: !input home
+  event: leave
+  id: leaving Home
+- platform: zone
+  entity_id: !input person
+  zone: !input work
+  event: leave
+  id: leaving Work
+- platform: zone
+  entity_id: !input person
+  zone: !input home
+  event: enter
+  id: enter Home
+- platform: zone
+  entity_id: !input person
+  zone: !input work
+  event: enter
+  id: enter Work
+- platform: zone
+  entity_id: !input person
+  zone: !input work_accomodation
+  event: enter
+  id: enter work_accomodation
+
+# making the input variable usable in the condition
+variables:
+  start_time: !input "commute_start_datetime"
+  end_time: !input "commute_end_datetime"
+
+condition: []
+
+action:
+- choose:
+  - conditions:
+    - condition: trigger
+      id:
+      - leaving Home
+      - leaving Work
+    sequence:
+    - service: input_datetime.set_datetime
+      data:
+        datetime: '{{ now() }}'
+      target:
+        entity_id: !input commute_start_datetime
+    - if:
+      - condition: trigger
+        id:
+        - leaving Home
+      then:
+      - service: input_text.set_value
+        data:
+          value: home
+        target:
+          entity_id: !input commute_origin
+    - if:
+      - condition: trigger
+        id:
+        - leaving Work
+      then:
+      - service: input_text.set_value
+        data:
+          value: work
+        target:
+          entity_id: !input commute_origin
+  - conditions:
+    - condition: trigger
+      id:
+      - enter Home
+      - enter Work
+      - enter work_accomodation
+    sequence:
+    - if:
+      - condition: or
+        conditions:
+        - condition: and
+          conditions:
+          - condition: trigger
+            id:
+            - enter Home
+          - condition: state
+            entity_id: !input commute_origin
+            state: work
+        - condition: and
+          conditions:
+          - condition: trigger
+            id:
+            - enter Work
+          - condition: state
+            entity_id: !input commute_origin
+            state: home
+        - condition: and
+          conditions:
+          - condition: trigger
+            id:
+            - enter work_accomodation
+          - condition: state
+            entity_id: !input commute_origin
+            state: home
+      then:
+        - service: input_datetime.set_datetime
+          data:
+            datetime: '{{ now() }}'
+          target:
+            entity_id: !input commute_end_datetime
+        - choose: []
+          default: !input actions
+      else:
+      - if:
+        - condition: not
+          conditions:
+          - condition: and
+            conditions:
+            - condition: trigger
+              id:
+              - enter work_accomodation
+            - condition: state
+              entity_id: !input commute_origin
+              state: work
+        then:
+        - service: input_text.set_value
+          data:
+            value: ''
+          target:
+            entity_id: !input commute_origin

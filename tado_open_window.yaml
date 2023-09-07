@@ -1,0 +1,56 @@
+blueprint:
+  name: tado - Open Window
+  description: Set Climate mode when window open/closes
+  domain: automation
+  input:
+    window:
+      name: Window
+      selector:
+        entity:
+          device_class: window
+    climate:
+      name: Heizung
+      selector:
+        entity:
+          domain: climate
+    wait:
+      name: Wait time
+      default: 600
+      selector:
+        number:
+          min: 0.0
+          max: 3600.0
+          unit_of_measurement: seconds
+          step: 1.0
+          mode: slider
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input window
+    to: "on"
+condition: []
+action:
+  - service: climate.set_hvac_mode
+    data:
+      hvac_mode: "off"
+    target:
+      entity_id: !input climate
+  - wait_for_trigger:
+      - platform: state
+        entity_id:
+          - !input window
+        to: "off"
+    enabled: true
+  - delay:
+      hours: 0
+      minutes: 10
+      seconds: 0
+      milliseconds: 0
+  - service: climate.set_hvac_mode
+    data:
+      hvac_mode: auto
+    target:
+      entity_id: !input climate
