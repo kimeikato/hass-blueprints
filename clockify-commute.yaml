@@ -3,6 +3,7 @@ blueprint:
   name: Clockyify - Commute
   description: Track commute time for clockify
   domain: automation
+  source_url: https://github.com/kimeikato/hass-blueprints/blob/main/clockify-commute.yaml
   input:
     person:
       name: Person

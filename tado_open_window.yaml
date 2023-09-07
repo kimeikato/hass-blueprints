@@ -2,6 +2,7 @@ blueprint:
   name: tado - Open Window
   description: Set Climate mode when window open/closes
   domain: automation
+  source_url: https://github.com/kimeikato/hass-blueprints/blob/main/tado_open_window.yaml
   input:
     window:
       name: Window
