@@ -1,9 +1,8 @@
 ---
 blueprint:
   name: Clockyify - Commute
-  description: Track commute time for clockify
+  description: Track commute time for clockify - v1.1.0
   domain: automation
-  source_url: https://github.com/kimeikato/hass-blueprints/blob/main/clockify-commute.yaml
   input:
     person:
       name: Person
@@ -59,6 +58,11 @@ trigger:
 - platform: zone
   entity_id: !input person
   zone: !input work
+  event: leave
+  id: leaving Work
+- platform: zone
+  entity_id: !input person
+  zone: !input work_accomodation
   event: leave
   id: leaving Work
 - platform: zone
