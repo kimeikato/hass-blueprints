@@ -1,0 +1,79 @@
+blueprint:
+  name: Clockify - Submit Fahrzeiten
+  description: Submit Fahrzeiten to clockify  - v1.0.0
+  domain: automation
+  input:
+    clockify_worspace_id:
+      name: workspaceId
+    clockify_project_id:
+      name: projectId
+    clockify_tag_id:
+      name: tagId
+    clockify_time_entry_description:
+      name: description
+    commute_start_datetime:
+      name: Start DateTime
+      selector:
+        entity:
+          domain: input_datetime
+    commute_end_datetime:
+      name: End DateTime
+      selector:
+        entity:
+          domain: input_datetime
+
+mode: single
+
+trigger:
+  - platform: event
+    event_type: mobile_app_notification_action
+    event_data:
+      action: SUBMIT_FAHRZEIT
+    context: {}
+    id: END
+  - platform: event
+    event_type: mobile_app_notification_action
+    event_data:
+      action: SUBMIT_FAHRZEIT_NOW
+    context: {}
+    id: NOW
+
+# making the input variable usable in the condition
+variables:
+  start_time: !input "commute_start_datetime"
+  end_time: !input "commute_end_datetime"
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - END
+        sequence:
+          - service: rest_command.post_time_entry
+            data:
+              workspaceId: !input clockify_worspace_id
+              projectId: !input clockify_project_id
+              tagId: !input clockify_tag_id
+              description: !input clockify_time_entry_description
+              start: >-
+                {{ as_timestamp(expand(start_time)[0].state) | timestamp_local }}
+              end: >-
+                {{ as_timestamp(expand(end_time)[0].state) | timestamp_local }}
+      - conditions:
+          - condition: trigger
+            id:
+              - NOW
+        sequence:
+          - service: rest_command.post_time_entry
+            data:
+              workspaceId: !input clockify_worspace_id
+              projectId: !input clockify_project_id
+              tagId: !input clockify_tag_id
+              description: !input clockify_time_entry_description
+              start: >-
+                {{ as_timestamp(expand(start_time)[0].state)
+                | timestamp_local }}
+              end: "{{ as_timestamp(now()) | timestamp_local }}"
