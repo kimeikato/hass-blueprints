@@ -1,6 +1,6 @@
 blueprint:
   name: Clockify - Submit Fahrzeiten
-  description: Submit Fahrzeiten to clockify  - v1.0.0
+  description: Submit Fahrzeiten to clockify  - v1.1.0
   domain: automation
   input:
     clockify_worspace_id:
@@ -21,6 +21,10 @@ blueprint:
       selector:
         entity:
           domain: input_datetime
+    trigger_end_date:
+      name: Use End DateTime
+    trigger_now_date:
+      name: Use Now
 
 mode: single
 
@@ -28,13 +32,13 @@ trigger:
   - platform: event
     event_type: mobile_app_notification_action
     event_data:
-      action: SUBMIT_FAHRZEIT
+      action: !input trigger_end_date
     context: {}
     id: END
   - platform: event
     event_type: mobile_app_notification_action
     event_data:
-      action: SUBMIT_FAHRZEIT_NOW
+      action: !input trigger_end_date
     context: {}
     id: NOW
 
