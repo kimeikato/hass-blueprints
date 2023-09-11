@@ -1,7 +1,7 @@
 # Clockify Blueprints
 
 ## REST-Command example
-```
+```yaml
 rest_command:
   post_time_entry:
     url: "https://api.clockify.me/api/v1/workspaces/{{ workspaceId }}/time-entries"
