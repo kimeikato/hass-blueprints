@@ -10,11 +10,11 @@ data:
     channel: fahrzeiten
     tag: fahrzeiten
     actions:
-      - action: SUBMIT_FAHRZEIT
+      - action: SUBMIT_FAHRZEIT       # Needed for "Use End DateTime" in clockify-submit-fahrzeiten.yaml
         title: >-
           Ankunft {{ as_timestamp(expand(end_time)[0].state) |
           timestamp_custom('%-H:%M', true) }}
-      - action: SUBMIT_FAHRZEIT_NOW
+      - action: SUBMIT_FAHRZEIT_NOW   # Needed for "Use Now" in clockify-submit-fahrzeiten.yaml
         title: Aktuelle Uhrzeit
   message: |-
     Start: {{expand(start_time)[0].state }}
