@@ -1,0 +1,52 @@
+---
+blueprint:
+  name: Zone Occupancy
+  description: Run Actions if zone is occupied or not - v1.0.0
+  domain: automation
+  input:
+    zone:
+      name: Zone
+      selector:
+        entity:
+          domain: zone
+    home_actions:
+      name: On Enter
+      description: do someting if first person enters zone
+      selector:
+        action: {}
+    leave_actions:
+      name: On Leave
+      description: do someting if last person leaves zone
+      selector:
+        action: {}
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id: !input zone
+    to: "0"
+    id: AWAY
+  - platform: state
+    entity_id: !input zone
+    id: ZONE
+    from: "0"
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - ZONE
+        sequence:
+          - choose: []
+            default: !input home_actions
+      - conditions:
+          - condition: trigger
+            id:
+              - AWAY
+        sequence:
+          - choose: []
+            default: !input leave_actions
