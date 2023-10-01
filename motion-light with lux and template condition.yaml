@@ -1,0 +1,111 @@
+blueprint:
+  name: Motion light
+  description: Motion light with lux and template condition - v1.0.0
+  domain: automation
+  input:
+    motion_entity:
+      name: Motion Sensor
+      selector:
+        entity:
+          domain:
+            - binary_sensor
+          device_class:
+            - motion
+          multiple: true
+    brightness_entity:
+      name: Lux/Brightness Sensor
+      selector:
+        entity:
+          device_class:
+            - illuminance
+          multiple: false
+    light_target:
+      name: Light(s) to control
+      selector:
+        target:
+          entity:
+            - domain:
+                - light
+    brightness_trigger:
+      name: Maximum brightness
+      description:
+        Brightness trigger level. If it gets any brighter the lights will
+        not be turned on.
+      default: 20
+      selector:
+        number:
+          min: 0.0
+          max: 1000.0
+          unit_of_measurement: lx
+          step: 1.0
+          mode: slider
+    template_condition_on:
+      name: Template condition for ON state
+      description: If template results to false light wont turn on.
+      default: "{{ true }}"
+      selector:
+        template: {}
+    template_condition_off:
+      name: Template condition for OFF state
+      description: If template results to false light wont turn off.
+      default: "{{ true }}"
+      selector:
+        template: {}
+    no_motion_wait:
+      name: Wait time
+      description: Time to leave the light on after last motion is detected.
+      default: 120
+      selector:
+        number:
+          min: 0.0
+          max: 3600.0
+          unit_of_measurement: seconds
+          step: 1.0
+          mode: slider
+
+mode: restart
+max_exceeded: silent
+
+variables:
+  lights: !input light_target
+
+trigger:
+  - platform: state
+    id: TURN ON
+    entity_id: !input motion_entity
+    from: "off"
+    to: "on"
+  - platform: state
+    id: TURN OFF
+    entity_id: !input motion_entity
+    from: "on"
+    to: "off"
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - TURN ON
+          - condition: or
+            conditions:
+              - "{{ expand(lights.entity_id) | selectattr('state', '==', 'on') | list |
+                count > 0 }}"
+              - condition: numeric_state
+                entity_id: !input brightness_entity
+                below: !input brightness_trigger
+          - condition: or
+            conditions: !input template_condition_on
+        sequence:
+          - service: light.turn_on
+            target: !input light_target
+      - conditions:
+          - condition: trigger
+            id:
+              - TURN OFF
+          - condition: or
+            conditions: !input template_condition_off
+        sequence:
+          - delay: !input no_motion_wait
+          - service: light.turn_off
+            target: !input light_target
