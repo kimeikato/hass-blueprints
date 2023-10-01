@@ -1,6 +1,6 @@
 blueprint:
   name: tado - Open Window
-  description: Set Climate mode when window open/closes  - v1.0.0
+  description: Set Climate mode when window open/closes - v2.0.0
   domain: automation
   source_url: https://github.com/kimeikato/hass-blueprints/blob/main/tado_open_window.yaml
   input:
@@ -14,16 +14,6 @@ blueprint:
       selector:
         entity:
           domain: climate
-    wait:
-      name: Wait time
-      default: 600
-      selector:
-        number:
-          min: 0.0
-          max: 3600.0
-          unit_of_measurement: seconds
-          step: 1.0
-          mode: slider
 
 mode: restart
 
@@ -32,26 +22,33 @@ trigger:
     entity_id:
       - !input window
     to: "on"
+  - platform: state
+    entity_id:
+      - !input window
+    from: "on"
+
 condition: []
+
 action:
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: "off"
-    target:
-      entity_id: !input climate
-  - wait_for_trigger:
-      - platform: state
-        entity_id:
-          - !input window
-        to: "off"
-    enabled: true
-  - delay:
-      hours: 0
-      minutes: 10
-      seconds: 0
-      milliseconds: 0
-  - service: climate.set_hvac_mode
-    data:
-      hvac_mode: auto
-    target:
-      entity_id: !input climate
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input window
+            state: "on"
+        sequence:
+          - service: climate.set_hvac_mode
+            data:
+              hvac_mode: "off"
+            target:
+              entity_id: !input climate
+      - conditions:
+          - condition: state
+            entity_id: !input window
+            state: "off"
+        sequence:
+          - service: tado.set_climate_timer
+            data:
+              temperature: 10
+              time_period: "00:10:00"
+            target:
+              entity_id: !input climate
