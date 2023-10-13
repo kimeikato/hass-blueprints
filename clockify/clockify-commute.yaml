@@ -1,7 +1,7 @@
 ---
 blueprint:
   name: Clockyify - Commute
-  description: Track commute time for clockify - v1.1.0
+  description: Track commute time for clockify - v1.1.1
   domain: automation
   input:
     person:
@@ -91,10 +91,23 @@ condition: []
 action:
 - choose:
   - conditions:
-    - condition: trigger
-      id:
-      - leaving Home
-      - leaving Work
+    - condition: or
+      conditions:
+      - condition: and
+        conditions:
+        - condition: trigger
+          id:
+          - leaving Home
+      - condition: and
+        conditions:
+        - condition: trigger
+          id:
+          - leaving Work
+        - condition: not
+          conditions:
+          - condition: state
+            entity_id: !input commute_origin
+            state: work
     sequence:
     - service: input_datetime.set_datetime
       data:
@@ -161,6 +174,11 @@ action:
             datetime: '{{ now() }}'
           target:
             entity_id: !input commute_end_datetime
+        - service: input_text.set_value
+          data:
+            value: ''
+          target:
+            entity_id: !input commute_origin
         - choose: []
           default: !input actions
       else:
