@@ -1,6 +1,6 @@
 blueprint:
   name: tado - Auto HOME/AWAY
-  description: Set Climate mode when someone enters/left Home - v1.0.0
+  description: Set Climate mode when someone enters/left Home - v1.0.1
   domain: automation
   source_url: https://github.com/kimeikato/hass-blueprints/blob/main/tado/tado_auto_preset.yaml
   input:
@@ -35,6 +35,11 @@ action:
             entity_id: !input zone
             above: 0
         sequence:
+          - service: climate.set_hvac_mode
+            data:
+              hvac_mode: auto
+            target:
+              entity_id: !input climate
           - service: climate.set_preset_mode
             data:
               preset_mode: home
@@ -45,6 +50,11 @@ action:
             entity_id: !input zone
             below: 1
         sequence:
+          - service: climate.set_hvac_mode
+            data:
+              hvac_mode: auto
+            target:
+              entity_id: !input climate
           - service: climate.set_preset_mode
             data:
               preset_mode: away
