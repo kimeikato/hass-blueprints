@@ -1,0 +1,61 @@
+blueprint:
+  name: climate - Open Window
+  description: Set Climate mode when window open/closes - v1.0.0
+  domain: automation
+  source_url: https://github.com/kimeikato/hass-blueprints/blob/main/climate_open_window.yaml
+  input:
+    window:
+      name: Window
+      selector:
+        entity:
+          device_class: window
+    climate:
+      name: Climate
+      selector:
+        entity:
+          domain: climate
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input window
+    to: "on"
+  - platform: state
+    entity_id:
+      - !input window
+    from: "on"
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input window
+            state: "on"
+            for:
+              hours: 0
+              minutes: 1
+              seconds: 0
+        sequence:
+          - service: climate.set_hvac_mode
+            data:
+              hvac_mode: "off"
+            target:
+              entity_id: !input climate
+      - conditions:
+          - condition: state
+            entity_id: !input window
+            state: "off"
+            for:
+              hours: 0
+              minutes: 5
+              seconds: 0
+        sequence:
+          - service: climate.set_hvac_mode
+            data:
+              hvac_mode: heat
+            target:
+              entity_id: !input climate
