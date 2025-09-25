@@ -22,10 +22,18 @@ trigger:
     entity_id:
       - !input window
     to: "on"
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
   - platform: state
     entity_id:
       - !input window
-    from: "on"
+    from: "off"
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
 
 condition: []
 
@@ -35,10 +43,6 @@ action:
           - condition: state
             entity_id: !input window
             state: "on"
-            for:
-              hours: 0
-              minutes: 1
-              seconds: 0
         sequence:
           - service: climate.set_hvac_mode
             data:
@@ -49,10 +53,6 @@ action:
           - condition: state
             entity_id: !input window
             state: "off"
-            for:
-              hours: 0
-              minutes: 5
-              seconds: 0
         sequence:
           - service: climate.set_hvac_mode
             data:
