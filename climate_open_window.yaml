@@ -1,6 +1,6 @@
 blueprint:
   name: climate - Open Window
-  description: Set Climate mode when window open/closes - v1.0.0
+  description: Set Climate mode when window open/closes - v1.0.1
   domain: automation
   source_url: https://github.com/kimeikato/hass-blueprints/blob/main/climate_open_window.yaml
   input:
@@ -29,7 +29,7 @@ trigger:
   - platform: state
     entity_id:
       - !input window
-    from: "off"
+    to: "off"
     for:
       hours: 0
       minutes: 5
